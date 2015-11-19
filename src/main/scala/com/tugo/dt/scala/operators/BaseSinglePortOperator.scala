@@ -17,7 +17,6 @@ abstract class BaseSinglePortOperator[A,B] extends BaseOperator with Serializabl
   var input : DefaultInputPort[A] = null
 
   protected def init() = {
-    println("init of BaseSinglePort operator called")
     input = new DefaultInputPort[A] {
       override def process(t: A): Unit = {
         processTuple(t)
