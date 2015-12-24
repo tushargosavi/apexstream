@@ -1,18 +1,19 @@
 package com.tugo.dt.scala.dag
 
 import com.datatorrent.api.Operator
+import com.datatorrent.lib.stream.Counter
 import com.tugo.dt.scala.operators._
 
 
-class Stream[A](val _sc : DTContext, val prev : Stream[_], val op : Operator) {
+class Stream[A](val _sc : DTContext, val prevStream : Stream[_], val op : Operator) {
 
   var next : Stream[_] = null
 
   def init() = {
-    if (this.prev != null) {
-      this.prev.next = this
+    if (this.prevStream != null) {
+      this.prevStream.next = this
     }
-    _sc.addStream(prev, this)
+    _sc.addStream(prevStream, this)
   }
 
   def map[B](func : A => B): Stream[B] = {
@@ -37,6 +38,10 @@ class Stream[A](val _sc : DTContext, val prev : Stream[_], val op : Operator) {
 
   def addOperator[B](op : Operator) : Stream[B] = {
     new Stream[B](this._sc, this, op)
+  }
+
+  def count : Stream[Int] = {
+    addOperator[Int](new Counter())
   }
 
   def print(): Stream[A] = {

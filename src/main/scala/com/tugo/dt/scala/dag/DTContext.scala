@@ -38,7 +38,7 @@ class DTContext(val dag : DAG, conf : Configuration) {
 
   class StreamInfo(val stream : Stream[_]) {
     val ports = PortMapper.mapPorts(stream.op)
-    val name = stream.op.getClass.getName
+    val name = stream.op.getClass.getSimpleName
     val op = stream.op
 
     def input : InputPort[_] = ports._1.values.toList.head

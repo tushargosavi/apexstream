@@ -9,6 +9,8 @@ import javax.validation.ConstraintViolationException;
 
 import org.junit.Assert;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Test;
 
@@ -34,4 +36,42 @@ public class ApplicationTest {
       Assert.fail("constraint violations: " + e.getConstraintViolations());
     }
   }
+
+  @Test
+  public void test1() throws IOException {
+    boolean b = BooleanUtils.toBoolean("true");
+    System.out.println(b);
+
+    b = BooleanUtils.toBoolean("false");
+    System.out.println(b);
+
+    b = BooleanUtils.toBoolean("true1");
+    System.out.println(b);
+
+    b = BooleanUtils.toBoolean((String)null);
+    System.out.println(b);
+
+    String[] arr = StringUtils.split("[tushar,gosavi]", ",");
+    for (String a : arr) {
+      System.out.println(a);
+    }
+  }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
