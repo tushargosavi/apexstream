@@ -82,9 +82,8 @@ class ReflexionPortMapper(val op : Operator) extends PortMapper {
   override def getOutputPort[T](name: String): OutputPort[T] = outputs.getOrElse(name, null).asInstanceOf
 
   override def getOutputPort[T]: OutputPort[T] = {
-    val entry = outputs.iterator.next
-    if (entry != null)
-      entry._2.asInstanceOf[OutputPort[T]]
+    if (outputs.iterator.hasNext)
+      outputs.iterator.next._2.asInstanceOf[OutputPort[T]]
     else
       null
   }
@@ -92,9 +91,8 @@ class ReflexionPortMapper(val op : Operator) extends PortMapper {
   override def getInputPort[T](name: String): InputPort[T] = inputs.getOrElse(name, null).asInstanceOf
 
   override def getInputPort[T]: InputPort[T] = {
-    val entry = inputs.iterator.next
-    if (entry != null)
-      entry._2.asInstanceOf[InputPort[T]]
+    if (inputs.iterator.hasNext)
+      inputs.iterator.next._2.asInstanceOf[InputPort[T]]
     else
       null
   }

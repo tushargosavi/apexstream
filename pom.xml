@@ -101,6 +101,7 @@
       <groupId>org.apache.apex</groupId>
       <artifactId>apex-common</artifactId>
       <version>3.3.0-incubating-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

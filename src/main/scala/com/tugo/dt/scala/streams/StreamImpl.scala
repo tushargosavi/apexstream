@@ -2,7 +2,7 @@ package com.tugo.dt.scala.streams
 
 import com.datatorrent.api.Operator.InputPort
 import com.datatorrent.api.{Attribute, Operator}
-import com.tugo.dt.scala.operators.{Filter, FlatMap, MapO, Reduce}
+import com.tugo.dt.scala.operators._
 
 import scala.collection.mutable
 
@@ -31,6 +31,12 @@ class StreamImpl[A](val ctx : Context, val source : Source[A]) extends Stream[A]
 
   override def count: Stream[Int] = ???
 
+
+  override def print(): Unit = {
+    addOperator(new ConsoleOutputOperator[A])
+    null
+  }
+
   /** apply this stream codec on the next operator */
   override def partitionBy(func: (A) => Int): Stream[A] = ???
 
@@ -39,7 +45,10 @@ class StreamImpl[A](val ctx : Context, val source : Source[A]) extends Stream[A]
     println("Adding sink " + getDefaultSink(op))
     sinks.+=(getDefaultSink(op))
     val source = getDefaultSource[B](op)
-    return new StreamImpl[B](ctx, source)
+    if (source == null)
+      null
+    else
+      new StreamImpl[B](ctx, source)
   }
 
   override def addSink(port: InputPort[A]): Stream[A] = {
@@ -53,18 +62,16 @@ class StreamImpl[A](val ctx : Context, val source : Source[A]) extends Stream[A]
   /** set the attribute on the operator */
   override def setAttribute[B](attr: Attribute[B], v: B): Stream[A] = ???
 
-  override def print(): Unit = ???
-
   private def getDefaultSink(op : Operator) : Sink[A] = {
     new Sink(ctx.getPortMapper(op).getInputPort[A], null)
   }
 
   private def getDefaultSource[B](op : Operator) : Source[B] = {
-    new Source[B](op, ctx.getPortMapper(op).getOutputPort[B])
-  }
-
-  def init(): Unit = {
-    ctx.register(this)
+    val port = ctx.getPortMapper(op).getOutputPort[B]
+    if (port == null)
+      null
+    else
+      new Source[B](op, port)
   }
 
   override def addTransform[B](func: (Stream[A]) => Stream[B]): Stream[B] = ???
@@ -72,6 +79,11 @@ class StreamImpl[A](val ctx : Context, val source : Source[A]) extends Stream[A]
   override def getSinks: Iterable[Sink[_]] = sinks
 
   override def getSource: Source[A] = source
+
+  def init(): Unit = {
+    if (this.source != null)
+      ctx.register(this)
+  }
 
   init()
 }

@@ -3,7 +3,7 @@ package com.tugo.dt.scala
 import com.datatorrent.api.annotation.ApplicationAnnotation
 import com.datatorrent.api.{DAG, StreamingApplication}
 import com.datatorrent.lib.algo.UniqueCounter
-import com.tugo.dt.scala.dag.DTContext
+import com.tugo.dt.scala.streams.DTContext
 import org.apache.hadoop.conf.Configuration
 import scala.collection.JavaConverters._
 
