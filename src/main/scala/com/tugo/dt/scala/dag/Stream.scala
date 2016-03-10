@@ -8,6 +8,7 @@ import com.tugo.dt.scala.operators._
 class Stream[A](val _sc : DTContext, val prevStream : Stream[_], val op : Operator) {
 
   var next : Stream[_] = null
+  var partitioner : (A) => Int = null
 
   def init() = {
     if (this.prevStream != null) {
@@ -46,6 +47,11 @@ class Stream[A](val _sc : DTContext, val prevStream : Stream[_], val op : Operat
 
   def print(): Stream[A] = {
     addOperator[A](new ConsoleOutputOperator[A]())
+  }
+
+  def partitionBy(func : (A) => Int) : Stream[A] = {
+    this.partitioner = func
+    this
   }
 
   init

@@ -14,7 +14,7 @@ public class FlatMap<A,B> extends BaseSinglePortOperator<A,B> implements Seriali
 
   private FlatMapFunc<A,B> func;
 
-  public FlatMap(FlatMapFunc func) {
+  public FlatMap(FlatMapFunc<A,B> func) {
     this.func = func;
   }
 
