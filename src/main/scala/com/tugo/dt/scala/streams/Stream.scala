@@ -23,7 +23,15 @@ trait Stream[A] {
 
   def reduce[B](func : (A, B) => B, start : B) : Stream[B]
 
+  def merge(joins : Stream[A]*) : Stream[A]
+
+  def merge[B, C](other : Stream[B], func1 : A => C, func2 : B => C) : Stream[C]
+
   def addOperator[B](op : Operator) : Stream[B]
+
+  def addOperator[B](op : Operator, port : OutputPort[B]) : Stream[B]
+
+  def addOperator[B](op : Operator, in : InputPort[A], out : OutputPort[B]) : Stream[B]
 
   def addSink(port : InputPort[A]) : Stream[A]
 
@@ -40,11 +48,15 @@ trait Stream[A] {
   def setAttribute[B](attr: Attribute[B], v : B) : Stream[A]
 
   /** set the property on the operator */
-  def setProperty[B](name : String, v : B) : Stream[A]
+  def setProperty(name : String, v : String) : Stream[A]
 
   def getSource : Source[A]
 
   def getSinks : Iterable[Sink[_]]
+
+  def setLocality(locality: Locality) : Stream[A]
+
+  def forward(flag : Boolean) : Stream[A]
 
 }
 

@@ -16,7 +16,13 @@ class TestApp extends StreamingApplication {
 
     ctx.fileInput("/user/tushar/data")
       .flatMap(_.split(" "))
-      .filter(_.length > 0)
+      .filter(new Function1[String, Boolean] {
+        var count = 0
+        override def apply(v1: String): Boolean = {
+          count += 1
+          v1.length > 0
+        }
+      })
       .addOperator[java.util.Map[String, Int]](new UniqueCounter())
       .flatMap(_.asScala.map(_.toString()))
       .print()

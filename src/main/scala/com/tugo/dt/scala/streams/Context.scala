@@ -41,11 +41,14 @@ class DTContext(val dag : DAG, val conf : Configuration) extends Context {
     source[String](op, op.output)
   }
 
+  def getOperatorName(op : Operator) = op.getClass.getSimpleName
+
   def build = {
     /** Add all operators to the DAG */
     operators.foreach(op => {
-      println("Adding operator ")
-      dag.addOperator("op_" + count, op)
+      val name = getOperatorName(op) + "_" + count
+      println("Adding operator " + name)
+      dag.addOperator(name, op)
       count+=1
     })
 

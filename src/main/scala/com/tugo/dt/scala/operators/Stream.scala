@@ -48,6 +48,11 @@ class Reduce[A,B](func : (A,B) => B, start : B) extends BaseSinglePortOperator[A
   }
 }
 
+/**
+  * Example of writing wrapper operator in scala on top of Java operator, which does
+  * some additional processing.
+  * @tparam A
+  */
 @DefaultSerializer(classOf[JavaSerializer])
 class UniqueCount[A] extends BaseSinglePortOperator[A, java.util.Map[A, Int]] with Serializable {
 

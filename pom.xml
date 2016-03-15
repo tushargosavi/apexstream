@@ -126,4 +126,7 @@
     </dependency>
   </dependencies>
 
+  <modules>
+    <module>apex-scala-shell</module>
+  </modules>
 </project>
