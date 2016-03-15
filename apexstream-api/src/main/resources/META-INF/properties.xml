@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<configuration>
+  <property>
+    <name>dt.operator.*.attr.MEMORY_MB</name>
+    <value>1024</value>
+  </property>
+</configuration>
+
