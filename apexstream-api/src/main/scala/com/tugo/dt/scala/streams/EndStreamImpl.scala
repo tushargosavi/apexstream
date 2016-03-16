@@ -37,10 +37,6 @@ class EndStreamImpl[A] extends Stream[A] {
   /** set the property on the operator */
   override def setProperty(name: String, v: String): Stream[A] = throw new StreamTerminatedException
 
-  override def setLocality(locality: Locality): Stream[A] = throw new StreamTerminatedException
-
-  override def forward(flag: Boolean): Stream[A] = throw new StreamTerminatedException
-
   /** set the attribute on the operator */
   override def setAttribute[B](attr: Attribute[B], v: B): Stream[A] = throw new StreamTerminatedException
 
@@ -51,4 +47,18 @@ class EndStreamImpl[A] extends Stream[A] {
   override def addSink(port: InputPort[A]): Stream[A] = throw new StreamTerminatedException
 
   override def merge(joins: Stream[A]*): Stream[A] = throw new StreamTerminatedException
+
+  override def forward(): Stream[A] = throw new StreamTerminatedException
+
+  override def rl: Stream[A] = throw new StreamTerminatedException
+
+  override def isParallel: Boolean = throw new StreamTerminatedException
+
+  override def getLocality: Locality = throw new StreamTerminatedException
+
+  override def nl: Stream[A] = throw new StreamTerminatedException
+
+  override def cl: Stream[A] = throw new StreamTerminatedException
+
+  override def th: Stream[A] = throw new StreamTerminatedException
 }

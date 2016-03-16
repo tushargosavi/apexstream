@@ -3,16 +3,14 @@ package com.tugo.dt.scala.streams
 import com.datatorrent.api.Attribute.AttributeMap
 import com.datatorrent.api.Attribute.AttributeMap.DefaultAttributeMap
 import com.datatorrent.api.DAG.Locality
-import com.datatorrent.api.Operator.{OutputPort, InputPort}
+import com.datatorrent.api.Operator.{InputPort, OutputPort}
 import com.datatorrent.api.{Attribute, Operator}
 import com.tugo.dt.scala.operators._
 
 import scala.collection.mutable
 
-class StreamImpl[A](val ctx : Context, val source : Source[A]) extends Stream[A] {
-
-  var locality: Locality = null
-  var forward: Boolean = false
+class StreamImpl[A](val ctx : Context, val source : Source[A], val locality: Locality = null, parallel : Boolean = false)
+  extends Stream[A] {
 
   var sinks: mutable.MutableList[Sink[A]] = new mutable.MutableList()
   var properties: mutable.Map[String, String] = new mutable.HashMap()
@@ -114,17 +112,6 @@ class StreamImpl[A](val ctx : Context, val source : Source[A]) extends Stream[A]
 
   init()
 
-  override def setLocality(locality: Locality): Stream[A] = {
-    this.locality = locality
-    this
-  }
-
-  override def forward(flag: Boolean): Stream[A] = {
-    this.forward = flag
-    this
-  }
-
-
   override def merge(joins: Stream[A]*): Stream[A] = {
     val op = new PassthroughOperator[A]()
     val newStream = addOperator[A](op, op.input, op.out)
@@ -137,5 +124,16 @@ class StreamImpl[A](val ctx : Context, val source : Source[A]) extends Stream[A]
     newStream
   }
 
+  override def th = new StreamImpl[A](ctx, source, Locality.THREAD_LOCAL)
+  override def cl = new StreamImpl[A](ctx, source, Locality.CONTAINER_LOCAL)
+  override def nl = new StreamImpl[A](ctx, source, Locality.NODE_LOCAL)
+  override def rl = new StreamImpl[A](ctx, source, Locality.RACK_LOCAL)
+
+  def forward : Stream[A] = new StreamImpl[A](ctx, source, locality, true)
+
   override def merge[B, C](other: Stream[B], func1: (A) => C, func2: (B) => C): Stream[C] = ???
+
+  override def getLocality: Locality = locality
+
+  override def isParallel: Boolean = parallel
 }

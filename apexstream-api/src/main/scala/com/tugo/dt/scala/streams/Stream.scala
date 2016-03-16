@@ -1,7 +1,7 @@
 package com.tugo.dt.scala.streams
 
 import com.datatorrent.api.DAG.Locality
-import com.datatorrent.api.Operator.{OutputPort, InputPort}
+import com.datatorrent.api.Operator.{InputPort, OutputPort}
 import com.datatorrent.api.{Attribute, Operator}
 
 case class Source[A](val op : Operator, port : OutputPort[A])
@@ -54,10 +54,15 @@ trait Stream[A] {
 
   def getSinks : Iterable[Sink[_]]
 
-  def setLocality(locality: Locality) : Stream[A]
+  def forward() : Stream[A]
 
-  def forward(flag : Boolean) : Stream[A]
+  def th : Stream[A]
+  def cl : Stream[A]
+  def nl : Stream[A]
+  def rl : Stream[A]
 
+  def getLocality : Locality
+  def isParallel : Boolean
 }
 
 /** When an operator is added to the stream, it may have multiple ports they are represented

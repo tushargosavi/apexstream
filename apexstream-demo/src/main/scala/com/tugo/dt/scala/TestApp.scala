@@ -16,7 +16,7 @@ class TestApp extends StreamingApplication with Serializable {
 
     ctx.fileInput("/user/tushar/data")
       .flatMap(_.split(" "))
-      .filter(_.length > 0)
+      .th.filter(_.length > 0)
       .addOperator[java.util.Map[String, Int]](new UniqueCounter())
       .flatMap(_.asScala.map(_.toString()))
       .print()

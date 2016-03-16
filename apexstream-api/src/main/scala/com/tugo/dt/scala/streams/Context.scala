@@ -1,5 +1,6 @@
 package com.tugo.dt.scala.streams
 
+import com.datatorrent.api.Context.PortContext
 import com.datatorrent.api.Operator.OutputPort
 import com.datatorrent.api.{DAG, Operator}
 import com.datatorrent.lib.io.fs.AbstractFileInputOperator.FileLineInputOperator
@@ -44,7 +45,7 @@ class DTContext(val dag : DAG, val conf : Configuration) extends Context {
 
   def getOperatorName(op : Operator) = op.getClass.getSimpleName
 
-  def build = {
+  def build() = {
     /** Add all operators to the DAG */
     operators.foreach(op => {
       val name = getOperatorName(op) + "_" + count
@@ -54,7 +55,7 @@ class DTContext(val dag : DAG, val conf : Configuration) extends Context {
     })
 
     /** add streams */
-    streams.foreach((s) => {
+    streams.filter(_.getSinks.nonEmpty).foreach((s) => {
       println("Adding stream s"+ count + " from " + s.getSource.op + " to ")
       val smeta = dag.addStream("s" + count)
       count+=1
@@ -62,7 +63,15 @@ class DTContext(val dag : DAG, val conf : Configuration) extends Context {
       s.getSinks.foreach((sink) => {
         println("Adding stream s"+ count + " source " + s.getSource.op + " sink " + sink.port)
         smeta.addSink(sink.port)
+        if (s.isParallel) {
+          println("port is configured as parallel, setting parallel attribute on the port")
+          dag.setInputPortAttribute[java.lang.Boolean](sink.port, PortContext.PARTITION_PARALLEL, true)
+        }
       })
+      if (s.getLocality != null) {
+        println("setting locality of the stream " + s.getLocality)
+        smeta.setLocality(s.getLocality)
+      }
     })
   }
 
