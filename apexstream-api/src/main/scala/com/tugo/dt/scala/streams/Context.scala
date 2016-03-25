@@ -1,13 +1,20 @@
 package com.tugo.dt.scala.streams
 
-import com.datatorrent.api.Context.PortContext
-import com.datatorrent.api.Operator.OutputPort
+import com.datatorrent.api.Context.{OperatorContext, PortContext}
+import com.datatorrent.api.DAG.Locality
+import com.datatorrent.api.Operator.{InputPort, OutputPort}
 import com.datatorrent.api.{DAG, Operator}
+import com.datatorrent.common.partitioner.StatelessPartitioner
 import com.datatorrent.lib.io.fs.AbstractFileInputOperator.FileLineInputOperator
 import com.datatorrent.stram.plan.logical.LogicalPlan
+import com.tugo.dt.scala.operators.StreamCodec
 import org.apache.hadoop.conf.Configuration
 
+import scala.collection.mutable
+
 trait Context {
+  def setscale[A](source: Source[A], num: Int)
+
   def addOperator(op : Operator)
   def register(stream : Stream[_])
   def getPortMapper(op : Operator) : PortMapper
@@ -15,11 +22,18 @@ trait Context {
 
 class DTContext(val dag : DAG, val conf : Configuration) extends Context {
 
+  abstract case class DTStream(in : InputPort[_], outs : OutputPort[_], locality : Locality) {
+    def setSource(s : Source[_])
+    def addSink(sink : Sink[_])
+  }
+
   val portMapperFactory : PortMappingFactory = DefaultPortMappingFactory
 
   val operators = new scala.collection.mutable.MutableList[Operator]()
   val streams = new  scala.collection.mutable.MutableList[Stream[_]]()
+  val opScaleMap = new mutable.HashMap[Operator, Int]()
   var count : Int = 0
+  var finalStreamMap : mutable.HashMap[Source, Seq[Sink[_]]] = new mutable.HashMap[Source, Seq[Sink[_]]]()
 
   override def addOperator(op: Operator): Unit = operators.+=(op)
 
@@ -54,6 +68,11 @@ class DTContext(val dag : DAG, val conf : Configuration) extends Context {
       count+=1
     })
 
+    // TODO get a map from source to sinks
+    streams.filter(_.getSinks.nonEmpty).foreach((s) => {
+      finalStreamMap(s.getSource, s.getSinks)
+    }
+
     /** add streams */
     streams.filter(_.getSinks.nonEmpty).foreach((s) => {
       println("Adding stream s"+ count + " from " + s.getSource.op + " to ")
@@ -63,22 +82,26 @@ class DTContext(val dag : DAG, val conf : Configuration) extends Context {
       s.getSinks.foreach((sink) => {
         println("Adding stream s"+ count + " source " + s.getSource.op + " sink " + sink.port)
         smeta.addSink(sink.port)
-        if (s.isParallel) {
-          println("port is configured as parallel, setting parallel attribute on the port")
-          dag.setInputPortAttribute[java.lang.Boolean](sink.port, PortContext.PARTITION_PARALLEL, true)
-        }
+        configurePorts(s, sink)
       })
       if (s.getLocality != null) {
         println("setting locality of the stream " + s.getLocality)
         smeta.setLocality(s.getLocality)
       }
     })
+
+    for(o <- opScaleMap) {
+      dag.getMeta(o._1).getAttributes.put(OperatorContext.PARTITIONER, new StatelessPartitioner(o._2))
+    }
+
   }
 
-  def newInstance : DTContext = {
-    val dag = new LogicalPlan()
-    val conf = new Configuration()
-    new DTContext(dag, conf)
+  override def setscale[A](source : Source[A], num : Int): Unit = {
+    val oldScale = opScaleMap.getOrElse(source.op, 1)
+    opScaleMap.put(source.op, Math.max(oldScale, num))
+  }
+
+  def configurePorts[T](s : Stream[T], sink : Sink[T]) = {
   }
 }
 

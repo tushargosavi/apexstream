@@ -9,15 +9,31 @@ import com.tugo.dt.scala.operators._
 
 import scala.collection.mutable
 
-class StreamImpl[A](val ctx : Context, val source : Source[A], val locality: Locality = null, parallel : Boolean = false)
+case class PartitionInfo[T](num : Int, func : T => Int)
+
+trait DeliverType[A]{
+  def configure(source : Source[A], sink : Sink[A])
+}
+
+class Forward[A] extends DeliverType[A] {
+  override def configure(source: Source[A], sink: Sink[A]): Unit = ???
+}
+
+class BroadCast[A] extends DeliverType[A] {
+  override def configure(source: Source[A], sink: Sink[A]): Unit = ???
+}
+
+class Shuffle[A](part : A => Int = null) extends DeliverType[A] {
+  override def configure(source: Source[A], sink: Sink[A]): Unit = ???
+}
+
+class StreamImpl[A](val ctx : Context, val source : Source[A], val locality: Locality = null, deliverType: DeliverType = null)
   extends Stream[A] {
 
   var sinks: mutable.MutableList[Sink[A]] = new mutable.MutableList()
-  var properties: mutable.Map[String, String] = new mutable.HashMap()
   var attrMap: AttributeMap = new DefaultAttributeMap
 
   def STreamImpl() = {}
-
 
   override def map[B](func: A => B): Stream[B] = {
     addOperator[B](new MapO[A, B](func))
@@ -36,7 +52,6 @@ class StreamImpl[A](val ctx : Context, val source : Source[A], val locality: Loc
   }
 
   override def count: Stream[Int] = ???
-
 
   override def print(): Unit = {
     addOperator(new ConsoleOutputOperator[A])
@@ -64,12 +79,6 @@ class StreamImpl[A](val ctx : Context, val source : Source[A], val locality: Loc
 
   override def addSink(port: InputPort[A]): Stream[A] = {
     sinks.+=(new Sink(port, null))
-    this
-  }
-
-  /** set the property on the operator */
-  override def setProperty(name: String, v: String): Stream[A] = {
-    properties.put(name, v)
     this
   }
 
@@ -129,11 +138,24 @@ class StreamImpl[A](val ctx : Context, val source : Source[A], val locality: Loc
   override def nl = new StreamImpl[A](ctx, source, Locality.NODE_LOCAL)
   override def rl = new StreamImpl[A](ctx, source, Locality.RACK_LOCAL)
 
-  def forward : Stream[A] = new StreamImpl[A](ctx, source, locality, true)
-
   override def merge[B, C](other: Stream[B], func1: (A) => C, func2: (B) => C): Stream[C] = ???
 
   override def getLocality: Locality = locality
 
-  override def isParallel: Boolean = parallel
+  def forward : Stream[A] = new StreamImpl[A](ctx, source, locality, new Forward[A])
+
+  /** partition the stream based on given function */
+  override def shuffle(func: (A) => Int): Stream[A] = {
+    new StreamImpl[A](this.ctx, this.source, this.locality, new Shuffle[A](func))
+  }
+
+  override def broadcast() : Stream[A] = {
+    new StreamImpl[A](this.ctx, this.source, this.locality, new BroadCast[A])
+  }
+
+  override def scale(num : Int) : Stream[A] = {
+    ctx.setscale(source, num)
+    this
+  }
+
 }

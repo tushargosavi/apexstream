@@ -7,7 +7,7 @@ import com.datatorrent.api.Operator.{OutputPort, InputPort}
 class StreamTerminatedException extends IllegalArgumentException
 
 /** A end stream which throws exception on all the operations */
-class EndStreamImpl[A] extends Stream[A] {
+abstract class EndStreamImpl[A] extends Stream[A] {
 
   override def map[B](func: (A) => B): Stream[B] = throw new StreamTerminatedException
 
@@ -34,9 +34,6 @@ class EndStreamImpl[A] extends Stream[A] {
 
   override def merge[B, C](other: Stream[B], func1: (A) => C, func2: (B) => C): Stream[C] = throw new StreamTerminatedException
 
-  /** set the property on the operator */
-  override def setProperty(name: String, v: String): Stream[A] = throw new StreamTerminatedException
-
   /** set the attribute on the operator */
   override def setAttribute[B](attr: Attribute[B], v: B): Stream[A] = throw new StreamTerminatedException
 
@@ -52,8 +49,6 @@ class EndStreamImpl[A] extends Stream[A] {
 
   override def rl: Stream[A] = throw new StreamTerminatedException
 
-  override def isParallel: Boolean = throw new StreamTerminatedException
-
   override def getLocality: Locality = throw new StreamTerminatedException
 
   override def nl: Stream[A] = throw new StreamTerminatedException
@@ -61,4 +56,5 @@ class EndStreamImpl[A] extends Stream[A] {
   override def cl: Stream[A] = throw new StreamTerminatedException
 
   override def th: Stream[A] = throw new StreamTerminatedException
+
 }

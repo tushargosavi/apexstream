@@ -47,14 +47,11 @@ trait Stream[A] {
   /** set the attribute on the operator */
   def setAttribute[B](attr: Attribute[B], v : B) : Stream[A]
 
-  /** set the property on the operator */
-  def setProperty(name : String, v : String) : Stream[A]
-
   def getSource : Source[A]
 
   def getSinks : Iterable[Sink[_]]
 
-  def forward() : Stream[A]
+
 
   def th : Stream[A]
   def cl : Stream[A]
@@ -62,7 +59,13 @@ trait Stream[A] {
   def rl : Stream[A]
 
   def getLocality : Locality
-  def isParallel : Boolean
+
+  /** partition the stream based on given function */
+  def forward() : Stream[A]
+  def shuffle(func : A => Int) : Stream[A]
+  def broadcast() : Stream[A]
+
+  def scale(count : Int) : Stream[A]
 }
 
 /** When an operator is added to the stream, it may have multiple ports they are represented
