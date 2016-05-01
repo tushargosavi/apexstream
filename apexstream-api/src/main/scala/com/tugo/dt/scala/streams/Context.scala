@@ -7,7 +7,6 @@ import com.datatorrent.api.{DAG, Operator}
 import com.datatorrent.common.partitioner.StatelessPartitioner
 import com.datatorrent.lib.io.fs.AbstractFileInputOperator.FileLineInputOperator
 import com.datatorrent.stram.plan.logical.LogicalPlan
-import com.tugo.dt.scala.operators.StreamCodec
 import org.apache.hadoop.conf.Configuration
 
 import scala.collection.mutable
@@ -22,9 +21,8 @@ trait Context {
 
 class DTContext(val dag : DAG, val conf : Configuration) extends Context {
 
-  abstract case class DTStream(in : InputPort[_], outs : OutputPort[_], locality : Locality) {
-    def setSource(s : Source[_])
-    def addSink(sink : Sink[_])
+  abstract case class DTStream(in : OutputPort[_], var outs : List[InputPort[_]] = List(), locality : Locality) {
+
   }
 
   val portMapperFactory : PortMappingFactory = DefaultPortMappingFactory
@@ -69,8 +67,13 @@ class DTContext(val dag : DAG, val conf : Configuration) extends Context {
     })
 
     // TODO get a map from source to sinks
+    val dtstreams : Map[OutputPort[_], DTStream] = Map()
     streams.filter(_.getSinks.nonEmpty).foreach((s) => {
-      finalStreamMap(s.getSource, s.getSinks)
+      val dstream = dtstreams.get(s.getSource.port)
+      if (dstream == null) {
+        val kv = (s.getSource.port, new DTStream(s.getSource.port, s.getSinks))
+
+      }
     }
 
     /** add streams */
